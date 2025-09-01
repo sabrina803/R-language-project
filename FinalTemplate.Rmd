@@ -19,7 +19,7 @@ Your final submission should be a markdown document, correctly paginated on Grad
 
 In appropriate sections, some formatting is provided for editing/replciating to make clean, orderly output. You are free to use this formatting or utilize your own.
 
-# Introduction (8 points)
+# Introduction 
 
 ### Instructions
 You should start by identifying the data, data source, and purpose of fitting a statistical model to this data. This should briefly detail the variables available for your analysis, your target variable, and justify the use case for fitting the model (from either a prediction or inference standpoint).
@@ -96,7 +96,7 @@ The logistic regression model aims to estimate the probability that a loan appli
 
 "Income normalized to 100k scale"
 
-# Model Fitting (12 points)
+# Model Fitting 
 
 ### Instructions
 Next up we want to fit our logistic regression model for our data. You should explore different models, different combinations of predictor variables, and try and settle on a model that does a good job of reprsenting the underlying data. You should support your model with arguments related to model fitting, such a utilizing p-values, justifying variables from research standpoint, and/or utilizing tools like step function. Note that there is no 'correct' answer, rather you will receive full credit for properly exploring and justifying the model you decide on. 
@@ -130,7 +130,7 @@ summary(model_2)
 ```
 In the second model, I began with null model (intercept only) and composed a full model with all potential predictors. The process then iteratively examined predictors not already provided and at each step added a new variable only if AIC decreased, which is a balance between fit and complexity and helps to guard against overfitting. Categorical variable inputs are automatically expanded into indicator levels in R, and we took their models' presence or importance at the same time as numeric values. This way, the data is left alone to find predictors that would make the model work better meaningfully, while keeping the output's final specification interpretable. After model selection, I then checked the signs of coefficients and p-values to confirm domain meaning or expectations and consulted diagnostics to see if there were indicators I was not concerned with.
 
-# Model summary (8 points)
+# Model summary 
 
 ### Instructions
 We now want to interpret the model, with a focus on interpreting the model from a mathematical standpoint. You should identify what every variables impact on the response variable is, specifically. As before, some formatting for your output is provided but you are free to utilize or remove it as you prefer.
@@ -174,7 +174,7 @@ Note: The baseline individual in this study is the reference case implied by the
 - HasCoSigner: Having a co-signer may reduce the likelihood of default. 
 - MonthsEmployed: More employment history may reduce default risk. 
 
-# Conclusion (8 points)
+# Conclusion 
 
 ### Instructions
 Lastly we want to conclude our analysis by interpreting our model again, but from a human perspective. Identify which variables had positive and negative impacts on your response, whether any of these are surprising or make sense, and how that reflects on the reality that generated this data. 
