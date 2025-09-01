@@ -1,0 +1,193 @@
+---
+title: "Logistic Regression Analysis"
+author: "Sabrina Wang"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Overview
+In this project we will explore fitting a logistic regression model to either predict loan application defaults (failure to pay for a loan) or job application callbacks. Your goal is to identify the dataset and purpose for fitting your model, detail the process used to fit your model, then discuss the results of your model both mathematically and as a human interpretation. 
+
+Your final submission should be a markdown document, correctly paginated on Gradescope, that touches on all of these pieces. You are free to use this template, and remove any instructions from your final submission if you prefer, but leaving them in is also fine. 
+
+In appropriate sections, some formatting is provided for editing/replciating to make clean, orderly output. You are free to use this formatting or utilize your own.
+
+# Introduction (8 points)
+
+### Instructions
+You should start by identifying the data, data source, and purpose of fitting a statistical model to this data. This should briefly detail the variables available for your analysis, your target variable, and justify the use case for fitting the model (from either a prediction or inference standpoint).
+
+Specifically:
+
+- Briefly describe the data set being analyzed at a high level, and the purpose or benefit of such an analysis
+- Briefly describe each of the variables in the dataset
+  - Identify the type of variable (numeric or categorical)
+  - Identify how you think the variable will relate to the outcome (response) variable you are trying to predict, noting either an expected increase, decrease, or no change in odds for the variable
+
+```{r dataimport}
+# Comment out one of the lines below depending on which data set you wish to explore
+loanDefaultData<-read.csv("LoanDefaultData.csv")
+```
+
+#### Model fitting goals:
+
+The logistic regression model aims to estimate the probability that a loan applicant will default on a loan given their demographics, financial circumstances, and credit-related characteristics. From the perspective of prediction, the model enables lenders to distinguish high-risk applicants from low-risk applicants, enabling them to make more informed lending decisions. From an inferential perspective, the model estimates the factors associated with default risk and provides insight into the factors that matter the most, including credit score, income, job stability, and having a co-signer. The model then balances being predictive yet interpretable, making it a useful tool for evaluating loan repayment behavior by lenders.
+
+#### Response:
+
+- default
+
+"Binary variable indicating whether or not the borrower defaulted on their loan (1 = default, 0 = no default)."
+
+#### Predictors:
+
+- Age (Numeric)
+
+"Age of the applicant"
+
+- Loan Amount (Numeric)
+
+"Amount borrowed in dollars"
+
+- Credit Score (Numeric)
+
+"Credit score of the applicant"
+
+- Months Employed (Numeric)
+
+"Number of months employed"
+
+- Num Credit Lines (Numeric)
+
+"Number of credit lines open"
+
+- Interest Rate (Numeric)
+
+"Interest rate on the loan"
+
+- Loan Term (Numeric)
+
+"Loan term in months"
+
+- Education (Categorical)
+
+"Highest education level attained (High School, Bachelor's, Master's, PhD)"
+
+- Employment Type (Categorical)
+
+"Type of employment (Full-time, Part-time, Self-employed)"
+
+- Marital Status (Categorical)
+
+"Marital status (Single, Married, Divorced)
+
+- Has Co Signer (Categorical)
+
+"Whether the applicant has a cosigner (Yes/No)
+
+- Income 100K (Numeric)
+
+"Income normalized to 100k scale"
+
+# Model Fitting (12 points)
+
+### Instructions
+Next up we want to fit our logistic regression model for our data. You should explore different models, different combinations of predictor variables, and try and settle on a model that does a good job of reprsenting the underlying data. You should support your model with arguments related to model fitting, such a utilizing p-values, justifying variables from research standpoint, and/or utilizing tools like step function. Note that there is no 'correct' answer, rather you will receive full credit for properly exploring and justifying the model you decide on. 
+
+Specifically:
+
+- Show code used to explore and fit a model to the data
+- Explain between code chunks why each step is being taken 
+- Detail the choices made to determine which variables belong in your model
+
+Two code chunks have been provided to get you started - you will likely need to make more code chunks to adequately explore possible models.
+
+```{r}
+model_1 <- glm(Default ~ CreditScore + LoanAmount100k + Income100k + InterestRate + HasCoSigner + MonthsEmployed, data = loanDefaultData, family = "binomial")
+
+summary(model_1)
+```
+In the first model, I chose those predictors that are most directly linked to financial stability and the capacity to repay. Specific factors in lending decisions are credit score, loan amount, income, and interest rate, and I included months employed as an indicator of job stability and whether the applicant has a co-signer since that reduces lender risk. I did not include demographic factors like marital status and education for this first model because the impact is less direct.
+```{r}
+null <- glm(Default ~ 1, data = loanDefaultData, family = "binomial")
+full <- glm(Default ~ Age + LoanAmount100k + CreditScore + MonthsEmployed +
+            NumCreditLines + InterestRate + LoanTerm + Education +
+            EmploymentType + MaritalStatus + HasCoSigner + Income100k,
+            data = loanDefaultData, family = "binomial")
+
+model_2 <- step(null, 
+                scope = list(lower = null, upper = full), 
+                direction = "forward", steps = 25)
+
+summary(model_2)
+```
+In the second model, I began with null model (intercept only) and composed a full model with all potential predictors. The process then iteratively examined predictors not already provided and at each step added a new variable only if AIC decreased, which is a balance between fit and complexity and helps to guard against overfitting. Categorical variable inputs are automatically expanded into indicator levels in R, and we took their models' presence or importance at the same time as numeric values. This way, the data is left alone to find predictors that would make the model work better meaningfully, while keeping the output's final specification interpretable. After model selection, I then checked the signs of coefficients and p-values to confirm domain meaning or expectations and consulted diagnostics to see if there were indicators I was not concerned with.
+
+# Model summary (8 points)
+
+### Instructions
+We now want to interpret the model, with a focus on interpreting the model from a mathematical standpoint. You should identify what every variables impact on the response variable is, specifically. As before, some formatting for your output is provided but you are free to utilize or remove it as you prefer.
+
+- Provide the full linear formula predicting log-odds (rough formatting has been provided and should be updated with your specific model parameter estimates and variables)
+- Identify the baseline individual in the model
+- Comment on each variable and its contribution to the odds (not log-odds)
+- When possible, convert scientific notation to standard notation
+  - IE: 4.235e-2 would be 0.04235, some rounding is fine but keep at least 3 significant digits
+
+The final resulting model found was: 
+
+$$log(Odds(Y=1)) = −1.47541−0.31472{HasCoSigner=Yes}−0.00110CreditScore+0.28271LoanAmount100k−0.65642Income100k+0.05970InterestRate−0.00912MonthsEmployed.$$
+
+The effect on the odds of each of the terms are listed below.
+
+```{r}
+final_model <- model_1
+coefficients <- summary(final_model)$coefficients
+odds_ratios <- exp(coefficients[, 1])
+confidence_interval <- exp(confint(final_model))
+
+model_results <- data.frame(
+  Variable=rownames(coefficients), 
+  Estimate=coefficients[, 1],
+  Odds_ratio=odds_ratios,
+  '2.5%'=confidence_interval[, 1],
+  '97.5%'=confidence_interval[, 2],
+  p_value=coefficients[, 4]
+)
+
+print(model_results)
+```
+
+Note: The baseline individual in this study is the reference case implied by the intercept: a borrower with no co-signer and every numeric predictor equal to 0.  The baseline individual is a reference point mathematically (not a real person). All odds ratios are interpreted relative to this baseline.
+
+- CreditScore: Higher scores will decrease default risk. 
+- LoanAmount100k: Larger loans may increase default risk.
+- Income100k: Higher income may reduce the likelihood of default.
+- InterestRate: Higher interest rates may make higher default rates.
+- HasCoSigner: Having a co-signer may reduce the likelihood of default. 
+- MonthsEmployed: More employment history may reduce default risk. 
+
+# Conclusion (8 points)
+
+### Instructions
+Lastly we want to conclude our analysis by interpreting our model again, but from a human perspective. Identify which variables had positive and negative impacts on your response, whether any of these are surprising or make sense, and how that reflects on the reality that generated this data. 
+
+- Conclude your analysis by identifying the variables that best predict the target (the variables of your model)
+
+The two strongest variables are Income100k and LoanAmount100k. InterestRate, HasCoSigner, and MonthsEmployed are also fairly significant. Then CreditScore has very little meaningful impact on a per point basis, but meaningful impact over a large change. 
+
+- Identify which variables positively and negatively impact the odds
+
+Variables positively impact the odds: LoanAmount100k, InterestRate.
+Variables negatively impact the odds: CreditScore. Income100k, MonthsEmployed, HasCoSigner
+
+- Comment on whether you believe these outcomes make logical sense, or if any stand out as surprising or unexpected
+
+Yes, in general the directions and relative sizes make sense: income clearly reduces risk (because of more capacity to repay), while larger loans and higher interest rates clearly increase risk through higher payment burdens. A co-signer reasonably reduces risk (backed payment), and longer employment reduces risk as an indicator of stability. The only perhaps slight surprise is that CreditScore has a smaller per-unit effect than many expect, but this is plausible because of the model includes other variables that capture similar information (income, employment, co-signer), the score's effect accumulates over tens of points rather than one point, and interest rate partly reflects risk-based pricing, thus its positive effect can "soak up" some of credit score's signal.
